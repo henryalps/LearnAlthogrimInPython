@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
+from os import listdir
+from os.path import isfile, join
 import draw_figure as df
+from toolkits import ToolKits
+from enums import BPTypes, BHSTypes
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.cross_validation import train_test_split
 #  类名 与 属性名 要采用 驼峰表达式
 #  方法名 与 局部变量名 要采用 下划线表达式
 #  使用‘\’来换行 但在[]/()/{}中无需这样使用
@@ -19,41 +24,110 @@ class RandomForest:
             'loge_ar_1', 'loge_ar_2', 'loge_ar_3', 'loge_ar_4', 'loge_ar_5',
             'loge_delta', 'loge_iqr', 'ppg_fed_ar_1', 'ppg_fed_ar_2',
             'ppg_fed_ar_3', 'ppg_fed_ar_4', 'ppg_fed_ar_5']
-    colsRes = ['dbps']  # 'sbps' , 'dbps'
+    colsRes = ['sbps', 'dbps']  # 'sbps' , 'dbps'
+    colsResTypes = [BPTypes.SBP, BPTypes.DBP]
+    minFullSetSize = 30  # 只有全集大于等于30时才进行训练
 
-    def __init__(self, train_set_file_name, test_set_file_name):
-        self.trainSet = pd.read_csv(train_set_file_name)  # 训练集
-        self.testSet = pd.read_csv(test_set_file_name)  # 测试集
-        self.rf = RandomForestRegressor(n_estimators=100, max_depth=4, warm_start=True)
+    def __init__(self):
+        self.x_train = []
+        self.y_train = []
+        self.x_test = []
+        self.y_test = []
         self.testResults = []
-
+        self.rf = RandomForestRegressor(n_estimators=100, max_depth=4, warm_start=True)
         self.dt = df.DrawToolkit()  # plot assistant
-        self.type = 'SBP' if self.colsRes[0].__eq__('sbps') else 'DBP'
+        self.type = BPTypes.SBP
 
     def train(self):
-        train_arr = self.trainSet.as_matrix(self.cols)
-        train_res = self.trainSet.as_matrix(self.colsRes)
-        # train_res = np.char.mod('%f', train_res)  # 把浮点数组转为字符串数组
-        train_res = np.ravel(train_res)  # 数据整形
+        train_arr = self.x_train
+        train_res = self.y_train[:, self.colsResTypes.index(self.type)]
         self.rf.fit(train_arr, train_res)
 
     def test(self):
-        test_arr = self.testSet.as_matrix(self.cols)
+        test_arr = self.x_test
         self.testResults = self.rf.predict(test_arr)
 
     def show_predict_result(self):
         tmp = self.testSet
         tmp['prediction'] = self.testResults
         # print(tmp.head())
-        self.dt.plot_scatter(list(tmp[self.colsRes[0]]), list(self.testResults),
-                             "Measured " + self.type + "(mmHg)", "Estimated " + self.type + "(mmHg)",
-                             self.type + " Regression Result")
+        self.dt.generate_scatter_plt(list(tmp[self.colsRes[0]]), list(self.testResults),
+                             "Measured " + BPTypes.get_type_name(self.type) + "(mmHg)", "Estimated " +
+                                     BPTypes.get_type_name(self.type) + "(mmHg)",
+                                     BPTypes.get_type_name(self.type) + " Regression Result")
+
+    def save_predict_result(self, sig_name, root_path):
+        tmp_plt = self.dt.generate_scatter_plt(list(self.y_test[:, self.colsResTypes.index(self.type)]), list(self.testResults),
+                             "Measured " + BPTypes.get_type_name(self.type) +
+                             "(mmHg)", "Estimated " + BPTypes.get_type_name(self.type) + "(mmHg)",
+                                     sig_name + ": " + BPTypes.get_type_name(self.type) + " Regression Result")
+        tmp_plt.savefig(root_path + '_' + BPTypes.get_type_name(self.type) + '_' + sig_name + '.png')
+
+    def get_result_bhs_type(self):
+        small_than_5, small_than_10, small_than_15 = [0] * 3
+        for val in list(map(lambda x: x[0]-x[1],
+                                zip(self.testResults, self.y_test[:, self.colsResTypes.index(self.type)]))):
+            val = abs(val)
+            if val <= 15:
+                small_than_15 += 1
+                if val <= 10:
+                    small_than_10 += 1
+                    if val <= 5:
+                        small_than_5 += 1
+
+        return ToolKits.which_bhs_standard(100.0 * small_than_5/len(self.testResults),
+                                           100.0 * small_than_10/len(self.testResults),
+                                           100.0 * small_than_15/len(self.testResults))
+
+    def read_file(self, data_file_name):
+        full_set = pd.read_csv(data_file_name)
+        return full_set.as_matrix(self.cols), full_set.as_matrix(self.colsRes)
+
+    def split_sets(self, src_set, res_set):
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(src_set, res_set)
+
+    def set_data_type(self, bp_type):
+        self.type = bp_type
+
+    def reset_model(self):
+        self.rf = RandomForestRegressor(n_estimators=100, max_depth=4, warm_start=True)
+
+    def alter_type(self):
+        self.type = self.colsResTypes[0] if self.type == self.colsResTypes[1] else self.colsResTypes[1]
 
 
 if __name__ == "__main__":
-    train_set_name = '/mnt/code/matlab/data/csv/train.csv'
-    test_set_name = '/mnt/code/matlab/data/csv/test.csv'
-    rf_obj = RandomForest(train_set_file_name=train_set_name, test_set_file_name= test_set_name)
-    rf_obj.train()
-    rf_obj.test()
-    rf_obj.show_predict_result()
+    root_path = '/mnt/code/matlab/data/csv/'
+    only_csv_files = [f for f in listdir(root_path) if isfile(join(root_path, f)) &
+                      f.startswith('a') & f.endswith('.csv')]
+    type_sbp_nums = list([0] * 4)
+    type_dbp_nums = list([0] * 4)
+    for csv_file_name in only_csv_files:
+        rf = RandomForest()
+        arr, res = rf.read_file(csv_file_name)
+        if np.size(arr, 0) >= RandomForest.minFullSetSize:
+            rf.split_sets(arr, res)
+            rf.train()
+            rf.test()
+            bhs_type = rf.get_result_bhs_type()
+            type_sbp_nums[bhs_type] += 1
+            rf.save_predict_result(csv_file_name, root_path + 'pic/' + BHSTypes.get_type_name(bhs_type))
+            rf.alter_type()
+            rf.reset_model()
+            rf.train()
+            rf.test()
+            bhs_type = rf.get_result_bhs_type()
+            type_dbp_nums[bhs_type] += 1
+            rf.save_predict_result(csv_file_name, root_path + 'pic/' + BHSTypes.get_type_name(bhs_type))
+
+            # rf.display_and_save_predict_result(csv_file_name)
+            # input()
+            # rf.display_and_save_predict_result()
+
+        # rf.train()
+        # rf.test()
+    # rf_obj.train()
+    # rf_obj.test()
+    # rf_obj.show_predict_result()
+    print(type_sbp_nums)
+    print(type_dbp_nums)
