@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 class Types:
     typeNames = []
 
@@ -10,6 +11,7 @@ class Types:
     @staticmethod
     def get_type_num(obj):
         return len(obj.typeNames)
+
 
 class BPTypes(Types):
     SBP, DBP = range(2)

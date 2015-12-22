@@ -3,7 +3,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 class DrawToolkit:
     def __init__(self):
         plt.close("all")
@@ -13,6 +12,8 @@ class DrawToolkit:
         self.secondColor = 'green'  # Second Color
         self.assistColor = 'grey'  # Assistant Line color
         self.colorAbbr = ['r', 'g', 'b', 'c']
+
+        self.calcPearsonR = True
         return
 
     def generate_scatter_plt(self, x, y, x_label, y_label, title):
@@ -35,9 +36,9 @@ class DrawToolkit:
         ax_scatter.set_ylim((x_y_min, x_y_max))
         area = np.pi * 4 ** 2  # radius is 4
         for point_x, point_y in zip(x, y):
-            shift = int(np.floor(abs(point_y - point_x) / 5.0)) + 1
-            shift = self.intervalNum - 1 if(shift >= self.intervalNum) else shift
-            for index in range(shift - 1, counts_in_each_error_interval.__len__()):
+            shift = int(np.float(abs(point_y - point_x) / 5.0))
+            shift = self.intervalNum - 1 if(shift >= self.intervalNum ) else shift
+            for index in range(shift, counts_in_each_error_interval.__len__()):
                 counts_in_each_error_interval[index] += 1
             ax_scatter.scatter(point_x, point_y, s=area,
                                c=self.colorAbbr[shift], alpha=0.5)
