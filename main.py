@@ -66,6 +66,13 @@ class RegressionAlgorithm:
                                                title)
         tmp_plt.show()
 
+    def show_mbp_full_set_result(self, title, mbp_local):
+        tmp_plt = self.dt.generate_scatter_plt(mbp_local, list(self.testResults),
+                             "Measured " + BPTypes.get_type_name(self.type) +
+                             "(mmHg)", "Estimated " + BPTypes.get_type_name(self.type) + "(mmHg)",
+                                               title)
+        tmp_plt.show()
+
     def save_predict_result(self, sig_name, title, plt_root_path):
         tmp_plt = self.dt.generate_scatter_plt(list(self.y_test[:, self.colsResTypes.index(self.type)]), list(self.testResults),
                              "Measured " + BPTypes.get_type_name(self.type) +
@@ -178,6 +185,7 @@ if __name__ == "__main__":
         if not is_valid:
             continue
         full_set_arr = np.concatenate((full_set_arr, arr.tolist()), 0) if len(full_set_arr) > 0 else arr.tolist()
+        res = get_mean_bp(res)
         full_set_res = np.concatenate((full_set_res, res.tolist()), 0) if len(full_set_res) > 0 else res.tolist()
     # print '************' + fh.colsRes[0] + '***************'
     # print rank_features(full_set_arr, full_set_res[:, 0], fh.cols)
@@ -202,60 +210,70 @@ if __name__ == "__main__":
     max_sbp_index_num = 6
     max_dbp_index_num = 9
 
+    # for train_index, test_index in kf:
+    #     # if not (index == max_sbp_index_num or index == max_dbp_index_num):
+    #     #     index += 1
+    #     #     continue
+    #
+    #     if len(max_sbp_train_index) == 0:
+    #         max_sbp_train_index = train_index
+    #     if len(max_dbp_train_index) == 0:
+    #         max_dbp_train_index = train_index
+    #     if len(max_sbp_test_index) == 0:
+    #         max_sbp_test_index = test_index
+    #     if len(max_dbp_test_index) == 0:
+    #         max_dbp_test_index = test_index
+    #
+    #     rf = RegressionAlgorithm()
+    #     # if index == max_sbp_index_num:
+    #     rf.x_train = full_set_arr[train_index, :]
+    #     rf.y_train = full_set_res[train_index]
+    #     rf.x_test = full_set_arr[test_index, :]
+    #     rf.y_test = full_set_res[test_index]
+    #     # rf.train()
+    #     rf.train_mbp()
+    #     stk = StatsToolKits(rf.test(), full_set_res[test_index])
+    #     cor = stk.get_pearson_corr()
+    #     print('***************SBP CORR')
+    #     print cor
+    #     cor = cor[0]
+    #     # rf.show_full_set_result('Tuning Model SBP Regression Result')
+    #     sbp_corrs.append(cor)
+    #     if cor > max_sbp_corr:
+    #         max_sbp_index = index
+    #         max_sbp_corr = cor
+    #         max_sbp_train_index = train_index
+    #         max_sbp_test_index = test_index
+
+        # rf.alter_type()
+        # rf.reset_model()
+        # rf.x_train = full_set_arr[train_index, :]
+        # rf.y_train = full_set_res[train_index, :]
+        # rf.x_test = full_set_arr[test_index, :]
+        # rf.y_test = full_set_res[test_index, :]
+        # rf.train()
+        # stk = StatsToolKits(rf.test(), full_set_res[test_index, 1])
+        # cor = stk.get_pearson_corr()
+        # cor = cor[0]
+        # # rf.show_full_set_result('Tuning Model DBP Regression Result')
+        # dbp_corrs.append(cor)
+        # print('***************DBP CORR')
+        # print(cor)
+        # if cor > max_dbp_corr:
+        #     max_dbp_index = index
+        #     max_dbp_corr = cor
+        #     max_dbp_train_index = train_index
+        #     max_dbp_test_index = test_index
+        # index += 1
+    index = 0
     for train_index, test_index in kf:
-        # if not (index == max_sbp_index_num or index == max_dbp_index_num):
-        #     index += 1
-        #     continue
-
-        if len(max_sbp_train_index) == 0:
-            max_sbp_train_index = train_index
-        if len(max_dbp_train_index) == 0:
-            max_dbp_train_index = train_index
-        if len(max_sbp_test_index) == 0:
-            max_sbp_test_index = test_index
-        if len(max_dbp_test_index) == 0:
-            max_dbp_test_index = test_index
-
-        rf = RegressionAlgorithm()
-        # if index == max_sbp_index_num:
-        rf.x_train = full_set_arr[train_index, :]
-        rf.y_train = full_set_res[train_index, :]
-        rf.x_test = full_set_arr[test_index, :]
-        rf.y_test = full_set_res[test_index, :]
-        rf.train()
-        stk = StatsToolKits(rf.test(), full_set_res[test_index, 0])
-        cor = stk.get_pearson_corr()
-        cor = cor[0]
-        print('***************SBP CORR')
-        print(cor)
-        # rf.show_full_set_result('Tuning Model SBP Regression Result')
-        sbp_corrs.append(cor)
-        if cor > max_sbp_corr:
-            max_sbp_index = index
-            max_sbp_corr = cor
+        if index == 1:
             max_sbp_train_index = train_index
             max_sbp_test_index = test_index
-
-        rf.alter_type()
-        rf.reset_model()
-        rf.x_train = full_set_arr[train_index, :]
-        rf.y_train = full_set_res[train_index, :]
-        rf.x_test = full_set_arr[test_index, :]
-        rf.y_test = full_set_res[test_index, :]
-        rf.train()
-        stk = StatsToolKits(rf.test(), full_set_res[test_index, 1])
-        cor = stk.get_pearson_corr()
-        cor = cor[0]
-        # rf.show_full_set_result('Tuning Model DBP Regression Result')
-        dbp_corrs.append(cor)
-        print('***************DBP CORR')
-        print(cor)
-        if cor > max_dbp_corr:
-            max_dbp_index = index
-            max_dbp_corr = cor
-            max_dbp_train_index = train_index
-            max_dbp_test_index = test_index
-        index += 1
+            break
+        else:
+            index += 1
+            continue
 
     print("sbp max index:" + str(max_sbp_index) + " ")
     print(sbp_corrs)
@@ -264,22 +282,27 @@ if __name__ == "__main__":
 
     rf = RegressionAlgorithm()
     rf.x_train = full_set_arr[max_sbp_train_index, :]
-    rf.y_train = full_set_res[max_sbp_train_index, :]
+    rf.y_train = full_set_res[max_sbp_train_index]
     rf.x_test = full_set_arr[max_sbp_test_index, :]
-    rf.y_test = full_set_res[max_sbp_test_index, :]
-    rf.train()
-    rf.test()
-    rf.show_full_set_result("Best SBP Regression")
+    rf.y_test = full_set_res[max_sbp_test_index]
+    rf.train_mbp()
+    cor = rf.test()
+    # rf.show_full_set_result("Best SBP Regression")
 
-    rf.reset_model()
-    rf.alter_type()
-    rf.x_train = full_set_arr[max_dbp_train_index, :]
-    rf.y_train = full_set_res[max_dbp_train_index, :]
-    rf.x_test = full_set_arr[max_dbp_test_index, :]
-    rf.y_test = full_set_res[max_dbp_test_index, :]
-    rf.train()
-    rf.test()
-    rf.show_full_set_result("Best DBP Regression")
+    rf.show_mbp_full_set_result("Best SBP Regression", list(rf.y_test))
+    stk = StatsToolKits(cor, full_set_res[max_sbp_test_index])
+    cor = stk.get_pearson_corr()
+    print('***************SBP CORR')
+    print cor
+    # rf.reset_model()
+    # rf.alter_type()
+    # rf.x_train = full_set_arr[max_dbp_train_index, :]
+    # rf.y_train = full_set_res[max_dbp_train_index, :]
+    # rf.x_test = full_set_arr[max_dbp_test_index, :]
+    # rf.y_test = full_set_res[max_dbp_test_index, :]
+    # rf.train()
+    # rf.test()
+    # rf.show_full_set_result("Best DBP Regression")
 
     exit()
 
