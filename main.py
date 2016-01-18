@@ -98,6 +98,7 @@ class RandomForest:
 
 if __name__ == "__main__":
     root_path = '/mnt/code/matlab/data/csv/'
+    pic_sub_path = 'pic/'
     only_csv_files = [f for f in listdir(root_path) if isfile(join(root_path, f)) &
                       f.startswith('a') & f.endswith('.csv')]
     type_sbp_nums = list([0] * 4)
@@ -111,14 +112,14 @@ if __name__ == "__main__":
             rf.test()
             bhs_type = rf.get_result_bhs_type()
             type_sbp_nums[bhs_type] += 1
-            rf.save_predict_result(csv_file_name, root_path + 'pic/' + BHSTypes.get_type_name(bhs_type))
+            rf.save_predict_result(csv_file_name, root_path + pic_sub_path + BHSTypes.get_type_name(bhs_type))
             rf.alter_type()
             rf.reset_model()
             rf.train()
             rf.test()
             bhs_type = rf.get_result_bhs_type()
             type_dbp_nums[bhs_type] += 1
-            rf.save_predict_result(csv_file_name, root_path + 'pic/' + BHSTypes.get_type_name(bhs_type))
+            rf.save_predict_result(csv_file_name, root_path + pic_sub_path + BHSTypes.get_type_name(bhs_type))
 
             # rf.display_and_save_predict_result(csv_file_name)
             # input()
