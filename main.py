@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import BPModel
+import LinearModel
 import pandas as pd
 import numpy as np
 from os import listdir
@@ -98,28 +100,34 @@ class RandomForest:
 
 if __name__ == "__main__":
     root_path = '/mnt/code/matlab/data/csv/'
-    pic_sub_path = 'pic/'
+    pic_sub_path = 'LR/'
+    # 1 获取文件列表
     only_csv_files = [f for f in listdir(root_path) if isfile(join(root_path, f)) &
                       f.startswith('a') & f.endswith('.csv')]
+    # 定义各类预测结果的数量
     type_sbp_nums = list([0] * 4)
     type_dbp_nums = list([0] * 4)
+    # 2 遍历文件列表
     for csv_file_name in only_csv_files:
-        rf = RandomForest()
-        arr, res = rf.read_file(csv_file_name)
+        # model = BPModel.BPModel()
+        model = LinearModel.LinearModel()
+        arr, res = model.read_file(join(root_path, csv_file_name))
         if np.size(arr, 0) >= RandomForest.minFullSetSize:
-            rf.split_sets(arr, res)
-            rf.train()
-            rf.test()
-            bhs_type = rf.get_result_bhs_type()
+            # 3 收缩压模型训练
+            model.split_sets(arr, res)
+            # model.x_train, model.x_test = model.scale_data(model.x_train, model.x_test)
+            model.train()
+            model.test()
+            bhs_type = model.get_result_bhs_type()
             type_sbp_nums[bhs_type] += 1
-            rf.save_predict_result(csv_file_name, root_path + pic_sub_path + BHSTypes.get_type_name(bhs_type))
-            rf.alter_type()
-            rf.reset_model()
-            rf.train()
-            rf.test()
-            bhs_type = rf.get_result_bhs_type()
+            model.save_predict_result(csv_file_name, root_path + pic_sub_path + BHSTypes.get_type_name(bhs_type))
+            # 4 舒张压模型训练
+            model.alter_type()
+            model.train()
+            model.test()
+            bhs_type = model.get_result_bhs_type()
             type_dbp_nums[bhs_type] += 1
-            rf.save_predict_result(csv_file_name, root_path + pic_sub_path + BHSTypes.get_type_name(bhs_type))
+            model.save_predict_result(csv_file_name, root_path + pic_sub_path + BHSTypes.get_type_name(bhs_type))
 
             # rf.display_and_save_predict_result(csv_file_name)
             # input()
@@ -130,5 +138,7 @@ if __name__ == "__main__":
     # rf_obj.train()
     # rf_obj.test()
     # rf_obj.show_predict_result()
+
+    # 5 打印模型输出的各类血压估计结果
     print(type_sbp_nums)
     print(type_dbp_nums)
