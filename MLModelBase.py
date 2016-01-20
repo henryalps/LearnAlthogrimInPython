@@ -8,6 +8,7 @@ import pandas as pd
 
 
 class MLModelBase:
+    minFullSetSize = 30  # 只有全集大于等于30时才进行训练
     colsResTypes = [BPTypes.SBP, BPTypes.DBP]
     cols = ['hr_miu', 'hr_delta', 'hr_iqr', 'hr_skew',
             'pwtt_mean', 'PH', 'PRT', 'PWA', 'RBAr', 'SLP1', 'SLP2',

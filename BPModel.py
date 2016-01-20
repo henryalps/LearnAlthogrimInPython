@@ -15,7 +15,7 @@ class BPModel(MLModelBase.MLModelBase):
                 Layer("Rectifier", units=6),
                 Layer("Linear")
             ],
-            learning_rate=0.0001,
+            learning_rate=0.00001,
             n_iter=20)
         self.neural_network.fit(self.x_train, self.get_train_res())
 

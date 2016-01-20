@@ -9,6 +9,7 @@ class LinearModel(MLModelBase.MLModelBase):
         self.linear_model = linear_model.LinearRegression()
 
     def train(self):
+        self.linear_model = linear_model.LinearRegression()
         self.linear_model.fit(self.x_train, self.get_train_res())
 
     def test(self):
