@@ -4,6 +4,9 @@ from enums import BHSTypes
 
 class ToolKits:
 
+    def __init__(self):
+        return
+
     @staticmethod
     def which_bhs_standard(small_than_5, small_than_10, small_than_15):
         if (small_than_5 >= 60) & (small_than_10 >= 85) & (small_than_15 >= 95):
