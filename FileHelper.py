@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 from os import listdir
 from os.path import isfile, join
+from enums import BPTypes
 import pandas as pd
 import numpy as np
 
 
 class FileHelper:
+    pathRoot = '/mnt/code/matlab/data/csv-pace-2-pace/long'
+    pathDbp = '/dbp'
+    pathSbp = '/sbp'
+    pathTrain = '/train'
+    pathTest = '/test'
+
     cols = ['hr_miu', 'hr_delta', 'hr_iqr', 'hr_skew',
             'pwtt_mean', 'PH', 'PRT', 'PWA', 'RBAr', 'SLP1', 'SLP2',
             'RBW10', 'RBW25', 'RBW33', 'RBW50', 'RBW66', 'RBW75',
@@ -16,6 +23,12 @@ class FileHelper:
             'loge_ar_1', 'loge_ar_2', 'loge_ar_3', 'loge_ar_4', 'loge_ar_5',
             'loge_delta', 'loge_iqr', 'ppg_fed_ar_1', 'ppg_fed_ar_2',
             'ppg_fed_ar_3', 'ppg_fed_ar_4', 'ppg_fed_ar_5']
+
+    cols_updated = ['PH', 'PRT', 'PWA', 'RBAr', 'SLP1', 'SLP2',
+            'RBW10', 'RBW25', 'RBW33', 'RBW50', 'RBW66', 'RBW75',
+            'DBW10', 'DBW25', 'DBW33', 'DBW50', 'DBW66', 'DBW75',
+            'KVAL', 'AmBE', 'DfAmBE', 'pwtt', 'hr']
+
     colsRes = ['sbps', 'dbps']  # 'sbps' , 'dbps'
 
     def __init__(self):
@@ -54,3 +67,17 @@ class FileHelper:
     def get_all_csv_names(self):
         for_return = self.get_short_csv_names() + self.get_long_csv_names()
         return for_return
+
+    def get_trainset_and_testset_from_file_with_name(self, bp_type, filename):
+        if bp_type == BPTypes.DBP:
+            full_name = self.pathRoot + self.pathDbp
+        else:
+            full_name = self.pathRoot + self.pathSbp
+        trainset = pd.read_csv(join(full_name + self.pathTrain, filename))
+        testset = pd.read_csv(join(full_name + self.pathTest, filename))
+        return [trainset, testset]
+
+    def split_original_data_matrix(self, set_matrix):
+        arr = set_matrix.as_matrix(self.cols_updated)
+        res = set_matrix.as_matrix(self.colsRes)
+        return [arr, res]

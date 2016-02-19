@@ -65,7 +65,10 @@ class MLModelBase:
 
     def read_file(self, data_file_name):
             full_set = pd.read_csv(data_file_name)
-            return full_set.as_matrix(self.cols), full_set.as_matrix(self.colsRes)
+            return self.split_original_data_matrix(full_set)
+
+    def split_original_data_matrix(self, matrix):
+        return matrix.as_matrix(self.cols), matrix.as_matrix(self.colsRes)
 
     def split_sets(self, src_set, res_set):
         self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(src_set, res_set)
