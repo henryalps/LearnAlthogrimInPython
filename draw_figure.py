@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # This class store all the methods related with plot operations.
+import matplotlib
+matplotlib.use('Agg')  # save fig instead of plot it
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -19,6 +21,7 @@ class DrawToolkit:
 
     def generate_scatter_plt(self, x, y, x_label, y_label, title):
         # init figure options
+        plt.close("all")
         fig, ax_scatter = plt.subplots(figsize=(8, 8))
         ax_scatter.set_xlabel(x_label)
         ax_scatter.set_ylabel(y_label)

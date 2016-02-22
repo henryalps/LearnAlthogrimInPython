@@ -41,6 +41,15 @@ class FileHelper:
         valid, arrs, indexes = self.pick_data(full_set.as_matrix(self.cols))
         return valid, np.matrix(arrs), full_set.as_matrix(self.colsRes)[indexes] if valid else []
 
+    def write_file(self, file_name, data_list):
+        f = open(file_name, "w")
+        for data in data_list:
+            try:
+                f.write(str(data[0]) + "\t" + str(data[1]) + "\n")
+            except:
+                continue
+        f.close()
+
     def pick_data(self, data):  # find column which contains 0 and eliminate them
         is_legal = False
         for_return = []

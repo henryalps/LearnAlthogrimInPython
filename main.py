@@ -2,8 +2,10 @@
 import MLModelBase
 import LinearModel
 import RandomForestModel
+import BPModel
 import FileHelper
 import numpy as np
+import StatsToolKits as stk
 from os import listdir
 from os.path import isfile, join
 from enums import BHSTypes, BPTypes
@@ -12,26 +14,33 @@ from enums import BHSTypes, BPTypes
 #  使用‘\’来换行 但在[]/()/{}中无需这样使用
 
 
-def use_model_and_get_result(csv_file_list, bp_type, pic_path):
+def use_model_and_get_result(model, csv_file_list, bp_type, pic_path):
     file_helper = FileHelper.FileHelper()
     type_nums = list([0] * 4)
+    corr_list = list([0] * csv_file_list.__len__())
+    corr_index = -1
     for csv_file_name in csv_file_list:
-        model = RandomForestModel.RandomForestModel()
-        if bp_type == BPTypes.DBP:
-            model.alter_type()
         try:
+            corr_index += 1
+            if bp_type == BPTypes.DBP:
+                model.alter_type()
             trainset, testset = file_helper.get_trainset_and_testset_from_file_with_name(bp_type, csv_file_name)
+            model.x_test, model.y_test = file_helper.split_original_data_matrix(testset)
+            if model.x_test.__len__() <= 3:  # use 3 as testset size THRESHOLD
+                corr_list[corr_index] = (0, 0)
+                continue
+            model.x_train, model.y_train = file_helper.split_original_data_matrix(trainset)
+            model.train()
+            model.test()
+            bhs_type = model.get_result_bhs_type()
+            type_nums[bhs_type] += 1
+            model.save_predict_result(csv_file_name, pic_path + BHSTypes.get_type_name(bhs_type))
+            corr_list[corr_index] = list(stk.StatsToolKits(list(model.y_test[:, model.colsResTypes.index(model.type)]),
+                                                      list(model.testResults)).get_pearson_corr())
         except:
+            corr_list[corr_index] = (0, 0)
             continue
-        model.x_test, model.y_test = file_helper.split_original_data_matrix(testset)
-        if model.x_test.__len__() <= 3:  # use 3 as testset size THRESHOLD
-            continue
-        model.x_train, model.y_train = file_helper.split_original_data_matrix(trainset)
-        model.train()
-        model.test()
-        bhs_type = model.get_result_bhs_type()
-        type_nums[bhs_type] += 1
-        model.save_predict_result(csv_file_name, pic_path + BHSTypes.get_type_name(bhs_type))
+    file_helper.write_file(pic_path + 'corr.txt', corr_list)
     return type_nums
 
 
@@ -42,35 +51,36 @@ def intersect_func(list_a, list_b):
 
 if __name__ == "__main__":
     root_path = '/mnt/code/matlab/data/csv-pace-2-pace/long/'
-    pic_sub_path = 'RF/'
-
+    pic_sub_path = ('RF/', 'LF/', 'NN/')
+    models = (RandomForestModel.RandomForestModel(), LinearModel.LinearModel(),
+              BPModel.BPModel())
     type = BPTypes.SBP
     type_train_sub_path = 'sbp/train/'
     type_test_sub_path = 'sbp/test/'
-    # 1 获取sbp文件列表
-    only_train_csv_files = [f for f in listdir(root_path + type_train_sub_path) if isfile(join(root_path +
-                            type_train_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
-    only_test_csv_files = [f for f in listdir(root_path + type_test_sub_path) if isfile(join(root_path +
-                            type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
-    only_train_csv_files = intersect_func(only_train_csv_files, only_test_csv_files)
-    # 2 遍历得到所有训练-测试集对，进行学习
-    type_sbp_nums = use_model_and_get_result(only_train_csv_files, type, root_path + pic_sub_path)
+    for i in range(0, pic_sub_path.__len__()):
+        # 1 获取sbp文件列表
+        only_train_csv_files = [f for f in listdir(root_path + type_train_sub_path) if isfile(join(root_path +
+                                type_train_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
+        only_test_csv_files = [f for f in listdir(root_path + type_test_sub_path) if isfile(join(root_path +
+                                type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
+        only_train_csv_files = intersect_func(only_train_csv_files, only_test_csv_files)
+        # 2 遍历得到所有训练-测试集对，进行学习
+        type_sbp_nums = use_model_and_get_result(models[i], only_train_csv_files, type, root_path + pic_sub_path[i])
 
-    type = BPTypes.DBP
-    type_train_sub_path = 'dbp/train/'
-    type_test_sub_path = 'dbp/test/'
-    # 3 获取dbp文件列表
-    only_train_csv_files = [f for f in listdir(root_path + type_train_sub_path) if isfile(join(root_path +
-                            type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
-    only_test_csv_files = [f for f in listdir(root_path + type_test_sub_path) if isfile(join(root_path +
-                            type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
-    only_train_csv_files = intersect_func(only_train_csv_files, only_test_csv_files)
-    # 4 对dbp重复2
-    type_dbp_nums = use_model_and_get_result(only_train_csv_files, type, root_path + pic_sub_path)
-    # 5 打印各种血压估计结果
-    print(type_sbp_nums)
-    print(type_dbp_nums)
-
+        type = BPTypes.DBP
+        type_train_sub_path = 'dbp/train/'
+        type_test_sub_path = 'dbp/test/'
+        # 3 获取dbp文件列表
+        only_train_csv_files = [f for f in listdir(root_path + type_train_sub_path) if isfile(join(root_path +
+                                type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
+        only_test_csv_files = [f for f in listdir(root_path + type_test_sub_path) if isfile(join(root_path +
+                                type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
+        only_train_csv_files = intersect_func(only_train_csv_files, only_test_csv_files)
+        # 4 对dbp重复2
+        type_dbp_nums = use_model_and_get_result(models[i], only_train_csv_files, type, root_path + pic_sub_path[i])
+        # 5 打印各种血压估计结果
+        print(type_sbp_nums)
+        print(type_dbp_nums)
 
 def unused_func():
     root_path = '/mnt/code/matlab/data/csv-long/'

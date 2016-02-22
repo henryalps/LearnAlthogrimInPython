@@ -10,7 +10,10 @@ class StatsToolKits:
         self.y = y
 
     def get_pearson_corr(self):  # return 0: corr, return1: p-index
-        tmp = pearsonr(self.x, self.y)
+        try:
+            tmp = pearsonr(self.x, self.y)
+        except:
+            tmp = (0, 0)
         return tmp[0], tmp[1]
 
     def get_mic(self):
