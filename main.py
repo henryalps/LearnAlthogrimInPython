@@ -18,6 +18,7 @@ def use_model_and_get_result(model, csv_file_list, bp_type, pic_path):
     file_helper = FileHelper.FileHelper()
     type_nums = list([0] * 4)
     corr_list = list([0] * csv_file_list.__len__())
+    file_name_list = list()
     corr_index = -1
     for csv_file_name in csv_file_list:
         try:
@@ -37,10 +38,16 @@ def use_model_and_get_result(model, csv_file_list, bp_type, pic_path):
             model.save_predict_result(csv_file_name, pic_path + BHSTypes.get_type_name(bhs_type))
             corr_list[corr_index] = list(stk.StatsToolKits(list(model.y_test[:, model.colsResTypes.index(model.type)]),
                                                       list(model.testResults)).get_pearson_corr())
+            file_name_list.append(csv_file_name)  # After all have done
         except:
             corr_list[corr_index] = (0, 0)
             continue
-    file_helper.write_file(pic_path + 'corr.txt', corr_list)
+    if bp_type == BPTypes.DBP:
+        file_helper.write_file_names(pic_path + 'dbp_file_names.txt', file_name_list)
+        file_helper.write_file(pic_path + 'dbp_corr.txt', corr_list)
+    else:
+        file_helper.write_file_names(pic_path + 'sbp_file_names.txt', file_name_list)
+        file_helper.write_file(pic_path + 'sbp_corr.txt', corr_list)
     return type_nums
 
 
@@ -51,13 +58,16 @@ def intersect_func(list_a, list_b):
 
 if __name__ == "__main__":
     root_path = '/mnt/code/matlab/data/csv-pace-2-pace/long/'
-    pic_sub_path = ('RF/', 'LF/', 'NN/')
-    models = (RandomForestModel.RandomForestModel(), LinearModel.LinearModel(),
-              BPModel.BPModel())
-    type = BPTypes.SBP
+    pic_sub_path = list()
+    pic_sub_path.append('NN/')  # ('LF/', 'RF/')  # 'NN/',
+    models = list()
+    models.append(BPModel.BPModel())  # (LinearModel.LinearModel(),
+              #  RandomForestModel.RandomForestModel( ))  # BPModel.BPModel(),
+
     type_train_sub_path = 'sbp/train/'
     type_test_sub_path = 'sbp/test/'
     for i in range(0, pic_sub_path.__len__()):
+        bp_type = BPTypes.SBP
         # 1 获取sbp文件列表
         only_train_csv_files = [f for f in listdir(root_path + type_train_sub_path) if isfile(join(root_path +
                                 type_train_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
@@ -65,9 +75,9 @@ if __name__ == "__main__":
                                 type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
         only_train_csv_files = intersect_func(only_train_csv_files, only_test_csv_files)
         # 2 遍历得到所有训练-测试集对，进行学习
-        type_sbp_nums = use_model_and_get_result(models[i], only_train_csv_files, type, root_path + pic_sub_path[i])
+        type_sbp_nums = use_model_and_get_result(models[i], only_train_csv_files, bp_type, root_path + pic_sub_path[i])
 
-        type = BPTypes.DBP
+        bp_type = BPTypes.DBP
         type_train_sub_path = 'dbp/train/'
         type_test_sub_path = 'dbp/test/'
         # 3 获取dbp文件列表
@@ -77,10 +87,12 @@ if __name__ == "__main__":
                                 type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv')]
         only_train_csv_files = intersect_func(only_train_csv_files, only_test_csv_files)
         # 4 对dbp重复2
-        type_dbp_nums = use_model_and_get_result(models[i], only_train_csv_files, type, root_path + pic_sub_path[i])
+        type_dbp_nums = use_model_and_get_result(models[i], only_train_csv_files, bp_type, root_path + pic_sub_path[i])
         # 5 打印各种血压估计结果
+        print('************')
         print(type_sbp_nums)
         print(type_dbp_nums)
+        print('************')
 
 def unused_func():
     root_path = '/mnt/code/matlab/data/csv-long/'

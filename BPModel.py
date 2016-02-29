@@ -12,7 +12,7 @@ class BPModel(MLModelBase.MLModelBase):
     def train(self):
         self.neural_network = Regressor(
             layers=[
-                Layer("Rectifier", units=6),
+                Layer("Rectifier", units=2),
                 Layer("Linear")
             ],
             learning_rate=0.00001,
@@ -20,5 +20,7 @@ class BPModel(MLModelBase.MLModelBase):
         self.neural_network.fit(self.x_train, self.get_train_res())
 
     def test(self):
-        self.testResults = self.neural_network.predict(self.x_test)
+        tmp_list = self.neural_network.predict(self.x_test)
+        for array_i in tmp_list:
+            self.testResults.append(array_i[0])
         return self.testResults

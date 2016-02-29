@@ -50,6 +50,15 @@ class FileHelper:
                 continue
         f.close()
 
+    def write_file_names(self, file_name, name_list):
+        f = open(file_name, "w")
+        for name_i in name_list:
+            try:
+                f.write(name_i + "\n")
+            except:
+                continue
+        f.close()
+
     def pick_data(self, data):  # find column which contains 0 and eliminate them
         is_legal = False
         for_return = []
