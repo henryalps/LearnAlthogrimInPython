@@ -5,6 +5,7 @@ import RandomForestModel
 import BPModel
 import FileHelper
 import numpy as np
+import toolkits as tk
 import StatsToolKits as stk
 from os import listdir
 from os.path import isfile, join
@@ -26,8 +27,13 @@ def use_model_and_get_result(model, csv_file_list, bp_type, pic_path):
             if bp_type == BPTypes.DBP:
                 model.alter_type()
             trainset, testset = file_helper.get_trainset_and_testset_from_file_with_name(bp_type, csv_file_name)
+            #  handle train and test set first
+            if not tk.ToolKits.is_train_set_legal(trainset):
+                continue
             model.x_test, model.y_test = file_helper.split_original_data_matrix(testset)
-            if model.x_test.__len__() <= 3:  # use 3 as testset size THRESHOLD
+            model.x_test = tk.ToolKits.get_legal_test_set(model.x_test)
+            model.y_test = tk.ToolKits.get_legal_test_set(model.y_test)  # without asarray, error would occur in get_result_bhs_type
+            if model.x_test.__len__() <= 100:  # use 400(shortest trainset length)/4 as testset size THRESHOLD
                 corr_list[corr_index] = (0, 0)
                 continue
             model.x_train, model.y_train = file_helper.split_original_data_matrix(trainset)
@@ -57,12 +63,17 @@ def intersect_func(list_a, list_b):
 
 
 if __name__ == "__main__":
-    root_path = '/mnt/code/matlab/data/csv-pace-2-pace/long/'
+    root_path = '/mnt/code/matlab/data/csv-pace-2-pace/long-long/'
     pic_sub_path = list()
-    pic_sub_path.append('NN/')  # ('LF/', 'RF/')  # 'NN/',
+    # pic_sub_path.append('LF/')
+    # pic_sub_path.append('RF/')
+    pic_sub_path.append('NN/')
+
+    # the model list should be of size with pic path list
     models = list()
-    models.append(BPModel.BPModel())  # (LinearModel.LinearModel(),
-              #  RandomForestModel.RandomForestModel( ))  # BPModel.BPModel(),
+    # models.append(LinearModel.LinearModel())
+    # models.append(RandomForestModel.RandomForestModel())
+    models.append(BPModel.BPModel())
 
     type_train_sub_path = 'sbp/train/'
     type_test_sub_path = 'sbp/test/'

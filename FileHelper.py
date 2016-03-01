@@ -7,7 +7,7 @@ import numpy as np
 
 
 class FileHelper:
-    pathRoot = '/mnt/code/matlab/data/csv-pace-2-pace/long'
+    pathRoot = '/mnt/code/matlab/data/csv-pace-2-pace/long-long'
     pathDbp = '/dbp'
     pathSbp = '/sbp'
     pathTrain = '/train'
