@@ -2,6 +2,10 @@
 import MLModelBase
 from enums import BPTypes
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.cross_validation import cross_val_score, ShuffleSplit
+import numpy as np
+import FileHelper as fh
+import Constants as Constant
 
 
 class RandomForestModel(MLModelBase.MLModelBase):
@@ -30,3 +34,22 @@ class RandomForestModel(MLModelBase.MLModelBase):
 
     def reset_model(self):
         self.rf = RandomForestRegressor(n_estimators=100, max_depth=4, warm_start=True)
+
+    def sort_features(self):
+        rf = RandomForestRegressor(n_estimators=20, max_depth=4)
+        scores = []
+        X = self.x_train  # np.concatenate((self.x_train, self.x_test), axis=0)
+        Y = self.y_train  # np.concatenate((self.y_train, self.y_test), axis=0)
+        Y = Y[:, self.colsResTypes.index(self.type)]
+        for i in range(self.x_train.shape[1]):
+            score = cross_val_score(rf, X[:, i:i+1],
+                                    Y, scoring='r2', cv=ShuffleSplit(len(X), 3, .3))
+            scores.append((round(np.mean(score), 3), fh.FileHelper.cols_updated[i]))
+        scores = sorted(scores, reverse=True)
+        X = []
+        Y = []
+        for s in scores:
+            X.append(s[0])
+            Y.append(s[1])
+        fh.FileHelper().write_test_result_in_file('sbp.mat', X, Y)
+        return X, Y

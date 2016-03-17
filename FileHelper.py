@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
+from Constants import _Const as Constant
 from os import listdir
 from os.path import isfile, join
 from enums import BPTypes
 import pandas as pd
 import numpy as np
+import scipy.io as io
 
 
 class FileHelper:
-    pathRoot = '/mnt/code/matlab/data/csv-pace-2-pace/long-long'
-    pathDbp = '/dbp'
-    pathSbp = '/sbp'
+    pathRoot = Constant.ROOT_PATH
+    pathDbp = Constant.DBP_FOLDER_NAME
+    pathSbp = Constant.SBP_FOLDER_NAME
     pathTrain = '/train'
     pathTest = '/test'
 
@@ -24,10 +26,19 @@ class FileHelper:
             'loge_delta', 'loge_iqr', 'ppg_fed_ar_1', 'ppg_fed_ar_2',
             'ppg_fed_ar_3', 'ppg_fed_ar_4', 'ppg_fed_ar_5']
 
-    cols_updated = ['PH', 'PRT', 'PWA', 'RBAr', 'SLP1', 'SLP2',
+    # cols_updated = ['PH', 'PRT', 'PWA', 'RBAr', 'SLP1', 'SLP2',
+    #         'RBW10', 'RBW25', 'RBW33', 'RBW50', 'RBW66', 'RBW75',
+    #         'DBW10', 'DBW25', 'DBW33', 'DBW50', 'DBW66', 'DBW75',
+    #         'KVAL', 'AmBE', 'DfAmBE', 'pwtt', 'hr']
+
+    cols_updated = ['PRT', 'RBAr',
             'RBW10', 'RBW25', 'RBW33', 'RBW50', 'RBW66', 'RBW75',
             'DBW10', 'DBW25', 'DBW33', 'DBW50', 'DBW66', 'DBW75',
-            'KVAL', 'AmBE', 'DfAmBE', 'pwtt', 'hr']
+            'KVAL', 'AmBE', 'pwtt', 'hr']
+
+    cols_updated_updated = ['pwtt', 'hr']  # 'SLP1', 'SLP2'
+
+    cols_updated_updated_updated = ['pwtt']  # 'SLP1', 'SLP2'
 
     colsRes = ['sbps', 'dbps']  # 'sbps' , 'dbps'
 
@@ -99,3 +110,13 @@ class FileHelper:
         arr = set_matrix.as_matrix(self.cols_updated)
         res = set_matrix.as_matrix(self.colsRes)
         return [arr, res]
+
+    def write_test_result_in_file(self, file_full_path, orig, est):
+        try:
+            io.savemat(file_full_path, dict(orig=orig, est=est))
+        except:
+            return
+
+    @staticmethod
+    def read_mat(mat_name):
+        return io.loadmat(mat_name)

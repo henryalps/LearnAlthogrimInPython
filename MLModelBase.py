@@ -29,7 +29,7 @@ class MLModelBase:
         self.y_test = []
         self.testResults = []
         self.dt = df.DrawToolkit()  # plot assistant
-        self.type = BPTypes.SBP
+        self.type = BPTypes.SBP  # default type is SBP
 
     def train(self):
         return
@@ -62,6 +62,9 @@ class MLModelBase:
 
     def alter_type(self):
         self.type = self.colsResTypes[0] if self.type == self.colsResTypes[1] else self.colsResTypes[1]
+
+    def reset_model(self):
+        self.type = self.colsResTypes[0]
 
     def read_file(self, data_file_name):
             full_set = pd.read_csv(data_file_name)

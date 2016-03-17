@@ -21,7 +21,7 @@ class ToolKits:
 
     @staticmethod
     def is_train_set_legal(train_set):
-        return train_set.shape[0] >= 400
+        return train_set.shape[0] >= 10
 
     @staticmethod
     def get_legal_test_set(test_set):
