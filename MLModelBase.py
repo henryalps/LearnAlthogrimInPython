@@ -60,6 +60,13 @@ class MLModelBase:
                                      sig_name + ": " + BPTypes.get_type_name(self.type) + " Regression Result")
         tmp_plt.savefig(root_path + '_' + BPTypes.get_type_name(self.type) + '_' + sig_name + '.png')
 
+    def show_predict_result(self, sig_name, root_path):
+        tmp_plt = self.dt.generate_scatter_plt(list(self.y_test[:, self.colsResTypes.index(self.type)]), list(self.testResults),
+                             "Measured " + BPTypes.get_type_name(self.type) +
+                             "(mmHg)", "Estimated " + BPTypes.get_type_name(self.type) + "(mmHg)",
+                                     sig_name + ": " + BPTypes.get_type_name(self.type) + " Regression Result")
+        tmp_plt.show()
+
     def alter_type(self):
         self.type = self.colsResTypes[0] if self.type == self.colsResTypes[1] else self.colsResTypes[1]
 

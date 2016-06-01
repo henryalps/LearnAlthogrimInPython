@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from sklearn.metrics import mean_squared_error
+from math import sqrt
 from scipy.stats import pearsonr
 from minepy import MINE
 import numpy as np
@@ -8,6 +10,9 @@ class StatsToolKits:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
+    def get_mean_square_error(self):
+        return sqrt(mean_squared_error(self.x, self.y))
 
     def get_pearson_corr(self):  # return 0: corr, return1: p-index
         try:

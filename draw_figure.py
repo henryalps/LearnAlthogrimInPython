@@ -14,7 +14,7 @@ class DrawToolkit:
         self.firstColor = 'blue'  # Main Color
         self.secondColor = 'green'  # Second Color
         self.assistColor = 'grey'  # Assistant Line color
-        self.colorAbbr = ['r', 'g', 'b', 'c']
+        self.colorAbbr = ['c', 'b', 'g', 'r']
 
         self.calcPearsonR = True
         return

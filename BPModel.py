@@ -12,10 +12,18 @@ class BPModel(MLModelBase.MLModelBase):
     def train(self):
         self.neural_network = Regressor(
             layers=[
+                # Layer("Rectifier", units=4),
+                # Layer("Linear")
+
+                # Layer("Linear")
+
+                Layer("Sigmoid", units=2),
                 Layer("Linear")
+                # Layer("Sigmoid")
             ],
-            learning_rate=0.00001,
-            n_iter=80)
+            learning_rate=0.01,
+            n_iter=10
+            )
         self.neural_network.fit(self.x_train, self.get_train_res())
 
     def test(self):
