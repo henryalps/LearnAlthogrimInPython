@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
+from Constants import _Const as Constant
 from os import listdir
 from os.path import isfile, join
 from enums import BPTypes
 import pandas as pd
 import numpy as np
+import scipy.io as io
 
 
 class FileHelper:
-    pathRoot = '/mnt/code/matlab/data/csv-pace-2-pace/long-long'
-    pathDbp = '/dbp'
-    pathSbp = '/sbp'
+    pathRoot = Constant.ROOT_PATH
+    pathDbp = Constant.DBP_FOLDER_NAME
+    pathSbp = Constant.SBP_FOLDER_NAME
     pathTrain = '/train'
     pathTest = '/test'
 
@@ -24,12 +26,27 @@ class FileHelper:
             'loge_delta', 'loge_iqr', 'ppg_fed_ar_1', 'ppg_fed_ar_2',
             'ppg_fed_ar_3', 'ppg_fed_ar_4', 'ppg_fed_ar_5']
 
-    cols_updated = ['PH', 'PRT', 'PWA', 'RBAr', 'SLP1', 'SLP2',
+    # cols_updated = ['PH', 'PRT', 'PWA', 'RBAr', 'SLP1', 'SLP2',
+    #         'RBW10', 'RBW25', 'RBW33', 'RBW50', 'RBW66', 'RBW75',
+    #         'DBW10', 'DBW25', 'DBW33', 'DBW50', 'DBW66', 'DBW75',
+    #         'KVAL', 'AmBE', 'DfAmBE', 'pwtt', 'hr']
+
+    cols_updated = ['PRT', 'RBAr',
             'RBW10', 'RBW25', 'RBW33', 'RBW50', 'RBW66', 'RBW75',
             'DBW10', 'DBW25', 'DBW33', 'DBW50', 'DBW66', 'DBW75',
-            'KVAL', 'AmBE', 'DfAmBE', 'pwtt', 'hr']
+            'KVAL', 'AmBE', 'pwtt', 'hr']
+
+    cols_updated_sbp = ['RBW10', 'RBW25', 'PRT', 'RBW33', 'pwtt', 'DBW50', 'RBW50']
+
+    cols_updated_dbp = ['RBW66', 'RBW75', 'RBW10', 'RBW33', 'RBW25', 'RBW50', 'PRT', 'pwtt', 'hr', 'DBW50']
+
+    cols_updated_updated = ['pwtt', 'hr']  # 'SLP1', 'SLP2'
+
+    cols_updated_updated_updated = ['pwtt']
 
     colsRes = ['sbps', 'dbps']  # 'sbps' , 'dbps'
+
+    bpType = BPTypes.SBP
 
     def __init__(self):
         self.long_csv_root_path = '/mnt/code/matlab/data/csv-long/'
@@ -87,7 +104,8 @@ class FileHelper:
         return for_return
 
     def get_trainset_and_testset_from_file_with_name(self, bp_type, filename):
-        if bp_type == BPTypes.DBP:
+        self.bpType = bp_type
+        if self.bpType == BPTypes.DBP:
             full_name = self.pathRoot + self.pathDbp
         else:
             full_name = self.pathRoot + self.pathSbp
@@ -96,6 +114,16 @@ class FileHelper:
         return [trainset, testset]
 
     def split_original_data_matrix(self, set_matrix):
-        arr = set_matrix.as_matrix(self.cols_updated)
+        if self.bpType == BPTypes.DBP:
+            arr = set_matrix.as_matrix(self.cols_updated_dbp)
+        else:
+            arr = set_matrix.as_matrix(self.cols_updated_sbp)
+        arr = set_matrix.as_matrix(self.cols_updated_updated_updated)  # @@SYNC@@
         res = set_matrix.as_matrix(self.colsRes)
         return [arr, res]
+
+    def write_test_result_in_file(self, file_full_path, orig, est):
+        try:
+            io.savemat(file_full_path, dict(orig=orig, est=est))
+        except:
+            return

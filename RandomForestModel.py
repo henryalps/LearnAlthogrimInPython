@@ -29,4 +29,5 @@ class RandomForestModel(MLModelBase.MLModelBase):
                                      BPTypes.get_type_name(self.type) + " Regression Result")
 
     def reset_model(self):
+        super(self)
         self.rf = RandomForestRegressor(n_estimators=100, max_depth=4, warm_start=True)
