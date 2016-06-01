@@ -36,11 +36,17 @@ class FileHelper:
             'DBW10', 'DBW25', 'DBW33', 'DBW50', 'DBW66', 'DBW75',
             'KVAL', 'AmBE', 'pwtt', 'hr']
 
+    cols_updated_sbp = ['RBW10', 'RBW25', 'PRT', 'RBW33', 'pwtt', 'DBW50', 'RBW50']
+
+    cols_updated_dbp = ['RBW66', 'RBW75', 'RBW10', 'RBW33', 'RBW25', 'RBW50', 'PRT', 'pwtt', 'hr', 'DBW50']
+
     cols_updated_updated = ['pwtt', 'hr']  # 'SLP1', 'SLP2'
 
     cols_updated_updated_updated = ['pwtt']  # 'SLP1', 'SLP2'
 
     colsRes = ['sbps', 'dbps']  # 'sbps' , 'dbps'
+
+    bpType = BPTypes.SBP
 
     def __init__(self):
         self.long_csv_root_path = '/mnt/code/matlab/data/csv-long/'
@@ -98,6 +104,7 @@ class FileHelper:
         return for_return
 
     def get_trainset_and_testset_from_file_with_name(self, bp_type, filename):
+        self.bpType = bp_type
         if bp_type == BPTypes.DBP:
             full_name = self.pathRoot + self.pathDbp
         else:
@@ -107,6 +114,10 @@ class FileHelper:
         return [trainset, testset]
 
     def split_original_data_matrix(self, set_matrix):
+        if self.bpType == BPTypes.DBP:
+            arr = set_matrix.as_matrix(self.cols_updated_dbp)
+        else:
+            arr = set_matrix.as_matrix(self.cols_updated_sbp)
         arr = set_matrix.as_matrix(self.cols_updated)
         res = set_matrix.as_matrix(self.colsRes)
         return [arr, res]

@@ -158,7 +158,8 @@ if __name__ == "__main__":
                                 type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv') & (Constant.FILE_NAME_FILTER in f)]
         only_train_csv_files = intersect_func(only_train_csv_files, only_test_csv_files)
         # 2 遍历得到所有训练-测试集对，进行学习
-        type_sbp_nums = use_model_and_get_result_feature_sort(models[i], only_train_csv_files, bp_type, root_path + pic_sub_path[i])
+        # type_sbp_nums = use_model_and_get_result_feature_sort(models[i], only_train_csv_files, bp_type, root_path + pic_sub_path[i])
+        type_sbp_nums = use_model_and_get_result(models[i], only_train_csv_files, bp_type, root_path + pic_sub_path[i])
 
         data_num = only_train_csv_files.__len__()
 
@@ -173,9 +174,8 @@ if __name__ == "__main__":
                                 type_test_sub_path, f)) & f.startswith('a') & f.endswith('.csv') & (Constant.FILE_NAME_FILTER in f)]
         only_train_csv_files = intersect_func(only_train_csv_files, only_test_csv_files)
         # 4 对dbp重复2
-        type_dbp_nums = use_model_and_get_result_feature_sort(models[i], only_train_csv_files, bp_type, root_path +
+        type_dbp_nums = use_model_and_get_result(models[i], only_train_csv_files, bp_type, root_path +
                                                  pic_sub_path[i].replace(Constant.SBP_FOLDER_NAME, Constant.DBP_FOLDER_NAME))
-
         data_num += only_train_csv_files.__len__()
 
         # 5 打印各种血压估计结果
